@@ -6,54 +6,46 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy import asarray as ar,exp
 import operator
-from astropy.time import time
 
 dataSets = []
 ps = []
 
 superX1 = []
-color = None
-
-cal1Mag = None
-cal2Mag = None
-
 
 # V - band: 31, 29, 06
 # B - band: 9, 13, 15
 def inputData():
-   #V - band start
-    global color
-     
-  #  color = "V"
-    color = "B"
-
-    if (color == "B"):
-        global cal2Mag
-        cal2Mag = 14.277
-        global cal1Mag
-        cal1Mag = 14.61
-
-        file_in = open('../18_02_15/summary.obs')
-        data2 = open('../18_02_13/summary.obs')
-        data3 = open('../18_02_09/summary.obs')
-
-    if (color == "V"):
-        global cal1Mag
-        cal1Mag = 13.658
-        global cal2Mag
-        cal2Mag = 13.323
-        file_in = open('../18_02_06/summary.obs')
-        data2 = open('../18_01_31_new/summary.obs')
-        data3 = open('../18_01_29_new/summary.obs')
-        
+#V - band start
+   # file_in = open('../18_02_06/summary.obs')
+#B - band start
+    file_in = open('../18_02_15/summary.obs')
+ #   minVal1 = fitData(file_in, 30/484, 120/484)
+    
+#    print "time 1", minVal1
+#    file_in = open('../18_01_31_new/summary.obs')
+  #  minVal2 = fitData(file_in, 310/484, 450/484)
+  #  print "time 2", minVal2
+   # time1 = optimise(x, guassFit)
 
 
+
+
+    #trial_in = open('../18_01_31_new/summary.obs')
+    #trial_in = open('../18_01_29_new/results.diff')
+  #  data1 = open('../18_02_02/summary.obs')
+  # V - band
+  #  data2 = open('../18_01_31_new/summary.obs')
+   # data3 = open('../18_01_29_new/summary.obs')
+   # B - band
+    data2 = open('../18_02_13/summary.obs')
+    data3 = open('../18_02_09/summary.obs')
     datain = [data3, data2]
 
+   # period = minVal2 - minVal1
     period = float(raw_input('What prop are you looking at? '))
-
+  # period = period / prop
     print period
-
+ ## file_in = open('../18_02_06/summary.obs')
     
    
     return file_in, datain, period
@@ -67,56 +59,41 @@ def extractData(data):
         if (trigger):
             
             time.append(float(line.split()[0]))
-          #  magA = float(line.split()[1]) - float(line.split()[3])
-          #  magB = float(line.split()[1]) - float(line.split()[5])
-        #    magTot = (magA + magB) / 2
-            delta1 = cal1Mag - float(line.split()[3])
-          
-            delta2 = cal2Mag - float(line.split()[5])
-            avDelta = (delta1 + delta2) / 2
-            magTot = float(line.split()[1]) + avDelta
-      
+            magA = float(line.split()[1]) - float(line.split()[3])
+            magB = float(line.split()[1]) - float(line.split()[5])
+            magTot = (magA + magB) / 2
+                     
             magnitude.append(magTot)
         else:
-            
-           
             trigger = True
     data.close()
-
+   
     return time, magnitude
 
 def gaus(x,a,x0,sigma):
     return a*exp(-(x-x0)**2/(2*sigma**2))
 
-def fitData(time, magnitude, minimum):
- #   if (upper == None):
- #       time, magnitude = extractData(file_in)
- #       index, value = max(enumerate(time), key=operator.itemgetter(1))
- #       lower = index - 30
- #       upper = index + 40
- #      
- #       
- #   else: time, magnitude = extractData(file_in)
-##    time, magnitude = genBinnedLines([time, magnitude])
+def fitData(file_in, lower, upper):
+    if (upper == None):
+        time, magnitude = extractData(file_in)
+        index, value = max(enumerate(time), key=operator.itemgetter(1))
+        lower = index - 30
+        upper = index + 40
+       
+        
+    else: time, magnitude = extractData(file_in)
+#    time, magnitude = genBinnedLines([time, magnitude])
     print len(time)
- #   print lower, upper
- #   lower = int(lower * (len(time)))
- #   upper = int(upper * (len(time)))
+    print lower, upper
+    lower = int(lower * (len(time)))
+    upper = int(upper * (len(time))) 
 
-    print minimum, "mini"
-
-    lower = int(minimum - len(time) * 0.5)
-    upper = int(minimum + len(time) * 0.2)
-
-
- #   print lower, upper
+    print lower, upper
 
   
     x = ar(time[lower:upper])
 
     y = ar(magnitude[lower:upper])
-    plt.plot(x, y)
-    plt.show()
     total = 0
     for i, val in enumerate(x):
         total += val * y[i]
@@ -143,10 +120,6 @@ def fitData(time, magnitude, minimum):
     plt.xlabel('Times')
     plt.ylabel('Magnitudes')
     plt.show()
-
-    start = time.index(x[index])
-    origin = start + index
-    return origin
     return x[index]
     
 
@@ -174,55 +147,40 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum):
     for i, data in enumerate(datain):
 
         time2, magnitude2 = extractData(data)
+   #     timeBinned, magnitudeBinned = genBinnedLines([time2, magnitude2])
 
+        #todo: add a boolean which allows you to check the data in advance to set distribution around max point for more automation
+
+     #  timeVal = fitData(data, None, None)
+     #  print timeVal
+
+     #  noPeriods = (recentMin - timeVal) / period
+       #print noPeriods, '<<--num periods'
+        
+     
+        
+        
+     #   pos = int(len(time) * period)
         numPeriods = abs((time2[0] - time[0])) / period
         time2 = [x + ((math.ceil(numPeriods)) * period) for x in time2]
+      # timeBinned = [x + ((math.ceil(numPeriods)) * period) for x in timeBinned]
+      # ax.plot(timeBinned, magnitudeBinned)
+        #
+        #ax.plot(time2, magnitude2, 'o', ms=2)
+       
+
         lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, time2, magnitude2)
         print len(lightCurveMags)
 
     cutoff = lightCurveTimes[0] + period
     print cutoff, 'cutoff'
    
-    lightCurveTimesCut = [x for x in lightCurveTimes if x < cutoff]
-    lightCurveTimesRollover = lightCurveTimes[len(lightCurveTimesCut):]
-    lightCurveMagsRollover = lightCurveMags[len(lightCurveTimesCut):]
-    lightCurveTimesRollover = [x - period for x in lightCurveTimesRollover]
-    lightCurveMagsCut = lightCurveMags[:len(lightCurveTimesCut)]
-    lightCurveCompleteMags, lightCurveCompleteTimes = combArrays(lightCurveTimesCut, lightCurveMagsCut,\
-                                                                 lightCurveTimesRollover, lightCurveMagsRollover)
-    print lightCurveCompleteTimes[-1] - lightCurveCompleteTimes[0]
-    lightCurveCompleteTimes = findMinPos(lightCurveCompleteTimes, lightCurveCompleteMags, period)
-  #  lightCurveCompleteTimes, lightCurveCompleteMags = genBinnedLines([lightCurveCompleteTimes, lightCurveCompleteMags])
-
-    ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
-  # 
-    if (color == "B"):
-        plt.title("Complete light curve B - band")
-   #     numpy.save("lCTimesB", lightCurveCompleteTimes)
-   #     numpy.save("lCMagB", lightCurveCompleteMags)
-    if (color == "V"):
-        plt.title("Complete light curve V - band")
-   #     numpy.save("lCTimesV", lightCurveCompleteTimes)
-    #    numpy.save("lCMagV", lightCurveCompleteMags)
+    lightCurveTimes = [x for x in lightCurveTimes if x < cutoff]
+    print lightCurveTimes[-1] - lightCurveTimes[0]
+    lightCurveMags = lightCurveMags[:len(lightCurveTimes)]
+    ax.plot(lightCurveTimes, lightCurveMags, 'o', ms = 2)
     plt.gca().invert_yaxis()
     plt.show()
-
-    return lightCurveCompleteTimes, lightCurveCompleteMags
-    
-
-def findMinPos(lCTimes, lCMags, period):
-    '''Find minimum/start point for light curves'''
-    minVal = max(lCMags)
-    print minVal
-    index = lCMags.index(minVal)
-    print len(lCTimes)
-    timeCut = lCTimes[index]
-    
-    lCTimesShifted = [x + period if x < timeCut else x for x in lCTimes]
-    print len(lCTimesShifted)
-   # origin = fitData(lCTimes, lCMags, index)
-    return lCTimesShifted
-    
     
 
 
@@ -298,7 +256,44 @@ def findPeriod(tGuess, alpha, times, magnitudes):
 
 
     
+def optimise(x, gaussFit):
 
+  #  x = [-i for i in x]
+
+   # time, magnitude = extractData(file_in)
+  #  timeBinned, magnitudeBinned = genBinnedLines([time, magnitude])
+    fig, ax = plt.subplots()
+    ax.plot(x, gaussFit)
+  
+#    ax.plot(time, magnitude, 'o', ms=2)
+    
+    plt.gca().invert_yaxis()
+
+    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    plt.show()
+    fig.canvas.mpl_disconnect(cid)
+    
+    return superX1[0]
+
+    print 'First time input: ', superX1[0]
+    
+    t1 = findPeriod(superX1[0], 0.1, timeBinned, magnitudeBinned)
+
+    print 'First time optimsed: ', t1
+    
+
+    print 'Second time input: ', superX1[1]
+    
+    t2 = findPeriod(superX1[1], 0.1, timeBinned, magnitudeBinned)
+
+    print 'Second time optimised: ', t2
+
+    proportion = float(raw_input("What prop of period do you have? "))
+    
+    period = t2 - t1
+    period = period / proportion
+    print "the period is", period
+    return period
 
 def combArrays(times1, vals1, times2, vals2):
     combVals = []
@@ -333,24 +328,7 @@ def combArrays(times1, vals1, times2, vals2):
             times2.remove(times2[0])
     return combVals, combTimes
 
-def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
-
-    mjdtime = time.mjd[0]
-    deltaTime = int(mjdtime - lightCurveTimes[0])
-
-    newTimes = [x + deltaTime for x in lightCurveTimes]
-
-    plt.plot(newTimes, lightCurveMags)
-    plt.plot(mjdtime, label = "Time")
-    plt.show()
-    
-
-    
 
 
 file_in, datain, ps          = inputData()
-lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, ps, 0)
-
-time = ['2018-02-25T22:00:00.123456789']
-
-getLightCurveAtTime(time, lcTimes, lcMags)
+findRelMagnitudesAndPlot(file_in, datain, ps, 0)
