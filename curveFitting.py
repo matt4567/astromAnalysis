@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy import asarray as ar,exp
 import operator
-from astropy.time import time
+#from astropy.time import time
 
 dataSets = []
 ps = []
@@ -21,6 +21,7 @@ cal2Mag = None
 # V - band: 31, 29, 06
 # B - band: 9, 13, 15
 def inputData():
+    '''Inport data and set colour band'''
    #V - band start
     global color
      
@@ -34,8 +35,10 @@ def inputData():
         cal1Mag = 14.61
 
         file_in = open('../18_02_15/summary.obs')
+        data1 = open('../mystack/summary.obs')
         data2 = open('../18_02_13/summary.obs')
         data3 = open('../18_02_09/summary.obs')
+        datain = [data1, data3, data2]
 
     if (color == "V"):
         global cal1Mag
@@ -45,26 +48,24 @@ def inputData():
         file_in = open('../18_02_06/summary.obs')
         data2 = open('../18_01_31_new/summary.obs')
         data3 = open('../18_01_29_new/summary.obs')
+        datain = [data3, data2]
         
 
-
-    datain = [data3, data2]
-
+#Set period of orbits
     period = float(raw_input('What prop are you looking at? '))
 
     print period
-
-    
-   
     return file_in, datain, period
 
 def extractData(data):
+    '''Pull out data from summary.obs files and calculate apparent magnitudes'''
     time = []
     magnitude = []
     trigger = False
     trigger2 = False
     for line in data:
         if (trigger):
+            print line
             
             time.append(float(line.split()[0]))
           #  magA = float(line.split()[1]) - float(line.split()[3])
@@ -78,17 +79,18 @@ def extractData(data):
       
             magnitude.append(magTot)
         else:
-            
-           
+            #stops running first line
             trigger = True
     data.close()
 
     return time, magnitude
 
 def gaus(x,a,x0,sigma):
+    '''define gaussian distribution'''
     return a*exp(-(x-x0)**2/(2*sigma**2))
 
 def fitData(time, magnitude, minimum):
+    '''Fit data to Guassian distribution'''
  #   if (upper == None):
  #       time, magnitude = extractData(file_in)
  #       index, value = max(enumerate(time), key=operator.itemgetter(1))
@@ -104,7 +106,7 @@ def fitData(time, magnitude, minimum):
  #   upper = int(upper * (len(time)))
 
     print minimum, "mini"
-
+#set bounds for guassian fitting
     lower = int(minimum - len(time) * 0.5)
     upper = int(minimum + len(time) * 0.2)
 
@@ -151,6 +153,7 @@ def fitData(time, magnitude, minimum):
     
 
 def findRelMagnitudesAndPlot(file_in, datain, period, minimum):
+    '''Create (and save) the lightcurve both B and V'''
 
     
     time, magnitude = extractData(file_in)
@@ -192,14 +195,14 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum):
                                                                  lightCurveTimesRollover, lightCurveMagsRollover)
     print lightCurveCompleteTimes[-1] - lightCurveCompleteTimes[0]
     lightCurveCompleteTimes = findMinPos(lightCurveCompleteTimes, lightCurveCompleteMags, period)
-  #  lightCurveCompleteTimes, lightCurveCompleteMags = genBinnedLines([lightCurveCompleteTimes, lightCurveCompleteMags])
+    lightCurveCompleteTimes, lightCurveCompleteMags = genBinnedLines([lightCurveCompleteTimes, lightCurveCompleteMags])
 
     ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
   # 
     if (color == "B"):
         plt.title("Complete light curve B - band")
-   #     numpy.save("lCTimesB", lightCurveCompleteTimes)
-   #     numpy.save("lCMagB", lightCurveCompleteMags)
+        numpy.save("lCTimesB", lightCurveCompleteTimes)
+        numpy.save("lCMagB", lightCurveCompleteMags)
     if (color == "V"):
         plt.title("Complete light curve V - band")
    #     numpy.save("lCTimesV", lightCurveCompleteTimes)
@@ -227,7 +230,7 @@ def findMinPos(lCTimes, lCMags, period):
 
 
 def genBinnedLines(data):
-  
+    '''Bin the data in groups to sharpen and reduce spread'''
   
     timeBinned = []
     magnitudeBinned = []
@@ -268,13 +271,14 @@ def genBinnedLines(data):
     
 
 def onclick(event):
-
+    '''define superX1 on pyplot.plot click'''
     global superX1
     superX1.append(event.xdata)
 
    
 
 def findPeriod(tGuess, alpha, times, magnitudes):
+    '''Iterative method for finding minimum of lightcurve'''
     offsetMean = 100
 
     while (offsetMean > .010):
@@ -301,6 +305,7 @@ def findPeriod(tGuess, alpha, times, magnitudes):
 
 
 def combArrays(times1, vals1, times2, vals2):
+    '''Combine 2 arrays at the correct times'''
     combVals = []
     combTimes = []
     while (len(vals1) != 0 or len(vals2) != 0):
@@ -334,7 +339,7 @@ def combArrays(times1, vals1, times2, vals2):
     return combVals, combTimes
 
 def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
-
+    '''Find the position in the lightCurve at the given time'''
     mjdtime = time.mjd[0]
     deltaTime = int(mjdtime - lightCurveTimes[0])
 
@@ -351,6 +356,6 @@ def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
 file_in, datain, ps          = inputData()
 lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, ps, 0)
 
-time = ['2018-02-25T22:00:00.123456789']
+#time = ['2018-02-25T22:00:00.123456789']
 
-getLightCurveAtTime(time, lcTimes, lcMags)
+#getLightCurveAtTime(time, lcTimes, lcMags)
