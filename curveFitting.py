@@ -34,10 +34,10 @@ def inputData():
         
         cal1Mag = 14.61
 
-        file_in = open('../18_02_15/summary.obs')
-        data1 = open('../mystack/summary.obs')
-        data2 = open('../18_02_13/summary.obs')
-        data3 = open('../18_02_09/summary.obs')
+        file_in = open('18_02_15/summary.obs')
+        data1 = open('mystack/summary.obs')
+        data2 = open('18_02_13/summary.obs')
+        data3 = open('18_02_09/summary.obs')
         datain = [data1, data2, data3]
 
     if (color == "V"):
@@ -45,9 +45,9 @@ def inputData():
         cal1Mag = 13.658
 
         cal2Mag = 13.323
-        file_in = open('../18_02_06/summary.obs')
-        data2 = open('../18_01_31_new/summary.obs')
-        data3 = open('../18_01_29_new/summary.obs')
+        file_in = open('18_02_06/summary.obs')
+        data2 = open('18_01_31/summary.obs')
+        data3 = open('18_01_29/summary.obs')
         datain = [data3, data2]
         
 
@@ -71,7 +71,7 @@ def findPeriods(data, cal1Mag, cal2Mag, period):
     periodOpts = []
     counter = 1
     index = 0
-    print len(timesOfMins)
+
     while (index < len(timesOfMins)):
         while (counter < len(timesOfMins)):
            
@@ -81,7 +81,7 @@ def findPeriods(data, cal1Mag, cal2Mag, period):
         counter = index + 1
     n = periodOpts[0] / period
     n_adjusted = round(n * 2) / 2
-    print n_adjusted
+
     period_adjusted = periodOpts[0] /  n_adjusted 
     print "Fitted period is", period_adjusted
     return period_adjusted
@@ -153,19 +153,18 @@ def fitData(time, magnitude, minimum):
                   
     popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
 
-    plt.plot(x,y,'b+:',label='data')
-    plt.plot(x,gaus(x,*popt),'ro:',label='fit')
+ #   plt.plot(x,y,'b+:',label='data')
+ #   plt.plot(x,gaus(x,*popt),'ro:',label='fit')
 
     minVal = max(gaus(x, *popt))
     minX = invGauss(minVal, *popt)
 
-    plt.legend()
-    plt.title('Gaussian fit')
-    plt.xlabel('Times')
-    plt.ylabel('Magnitudes')
-    plt.show()
+ #   plt.legend()
+ #   plt.title('Gaussian fit')
+ #   plt.xlabel('Times')
+ #   plt.ylabel('Magnitudes')
+ #   plt.show()
 
-    print type(minX)
     return minX
 
 
@@ -196,32 +195,35 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
 
         time2, magnitude2 = extractData(data, cal1Mag, cal2Mag)
 
-        numPeriods = int(abs(math.floor(time2[0] - time[0])) / period)
+        numPeriods = abs(time2[0] - time[0]) / period
         
         time2 = [x + ((math.ceil(numPeriods)) * period) for x in time2]
+     #   ax.plot(time2, magnitude2, 'o', ms = 2)
         lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, time2, magnitude2)
         
-
+        
+    
     cutoff = lightCurveTimes[0] + period
-
+    
     lightCurveCompleteTimes = lightCurveTimes
     lCBad = [x for x in lightCurveCompleteTimes if x > cutoff]
-    while (len(lCBad) > 0):
-        lCBad = [x for x in lightCurveCompleteTimes if x > cutoff]
-   
-        lightCurveTimesCut = [x for x in lightCurveCompleteTimes if x < cutoff]
-        lightCurveTimesRollover = lightCurveCompleteTimes[len(lightCurveTimesCut):]
-        lightCurveMagsRollover = lightCurveMags[len(lightCurveTimesCut):]
-        lightCurveTimesRollover = [x - period for x in lightCurveTimesRollover]
-        lightCurveMagsCut = lightCurveMags[:len(lightCurveTimesCut)]
-        lightCurveCompleteMags, lightCurveCompleteTimes = combArrays(lightCurveTimesCut, lightCurveMagsCut,\
+    trigger = True
+  
+    lCBad = [x for x in lightCurveCompleteTimes if x > cutoff]
+    trigger = False
+    lightCurveTimesCut = [x for x in lightCurveCompleteTimes if x < cutoff]
+    lightCurveTimesRollover = lightCurveCompleteTimes[len(lightCurveTimesCut):]
+    lightCurveMagsRollover = lightCurveMags[len(lightCurveTimesCut):]
+    lightCurveTimesRollover = [x - period for x in lightCurveTimesRollover]
+    lightCurveMagsCut = lightCurveMags[:len(lightCurveTimesCut)]
+    lightCurveCompleteMags, lightCurveCompleteTimes = combArrays(lightCurveTimesCut, lightCurveMagsCut,\
                                                                  lightCurveTimesRollover, lightCurveMagsRollover)
-    ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
+   # ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
     lightCurveCompleteTimes = findMinPos(lightCurveCompleteTimes, lightCurveCompleteMags, period)
     lightCurveCompleteTimes, lightCurveCompleteMags = genBinnedLines([lightCurveCompleteTimes, lightCurveCompleteMags])
    # lightCurveCompleteTimes = [x - lightCurveCompleteTimes[0] for x in lightCurveCompleteTimes]
 
-   # ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
+    ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
 
    # ax.plot(lightCurveTimes, lightCurveMags, 'o', ms = 2)
     if (color == "B"):
@@ -241,19 +243,19 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
 def findMinPos(lCTimes, lCMags, period):
     '''Find minimum/start point for light curves'''
     minVal = max(lCMags)
-    print minVal
+
     index = lCMags.index(minVal)
-    print len(lCTimes)
+
     timeCut = lCTimes[index]
-    print "timeCut", timeCut
+
     badVals = [j for j in lCTimes if j < timeCut]
     while len(badVals) > 0:
         
         badVals = [j for j in lCTimes if j < timeCut]
-        print len(badVals)
+       
         lCTimes = [x + period if x < timeCut else x for x in lCTimes]
         
-    print len(lCTimes)
+
    # origin = fitData(lCTimes, lCMags, index)
     return lCTimes
     
@@ -387,10 +389,16 @@ def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
 
 file_in, datain, ps, cal1Mag,cal2Mag = inputData()
 
-period = findPeriods([file_in] + datain, cal1Mag, cal2Mag, ps)
-file_in, datain, ps, cal1Mag,cal2Mag = inputData()
+
+if (color == "V"):
+    period = findPeriods([file_in] + datain, cal1Mag, cal2Mag, ps)
+    file_in, datain, ps, cal1Mag,cal2Mag = inputData()
+if (color == "B"):
+    period = 0.295562569469
 
 lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
+
+
 #time = ['2018-02-25T22:00:00.123456789']
 
 #getLightCurveAtTime(time, lcTimes, lcMags)
