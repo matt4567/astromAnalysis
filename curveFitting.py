@@ -224,6 +224,8 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
    # lightCurveCompleteTimes = [x - lightCurveCompleteTimes[0] for x in lightCurveCompleteTimes]
 
     ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
+    smooth_data = savitzky_golay(lightCurveCompleteMags,int(51),int(4))
+    ax.plot(lightCurveCompleteTimes, smooth_data)
 
    # ax.plot(lightCurveTimes, lightCurveMags, 'o', ms = 2)
     if (color == "B"):
@@ -384,8 +386,29 @@ def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
     plt.show()
     
 
-    
+   
+def savitzky_golay(y, window_size, order, deriv=0, rate=1):
 
+    from math import factorial
+
+    try:
+        window_size = int(numpy.abs(np.int(window_size)))
+        order = int(numpy.abs(np.int(order)))
+    except:
+        raise ValueError("window_size and order have to be of type int")
+    if window_size < order + 2:
+        raise TypeError("window_size is too small for the polynomials order")
+    order_range = range(order + 1)
+    half_window = (window_size - 1) // 2
+    #precompute coefficients
+    b = numpy.mat([[k**i for i in order_range] for k in range(-half_window+1)])
+    m = numpy.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
+    #pad the signal at the extremes with
+    #values taken from the signal itself
+    firstvals = y[0] - numpy.abs( y[1:half_window+1][::-1] - y[0] )
+    lastvals = y[-1] + numpy.abs(y[-half_window-1:-1][::-1] - y[-1])
+    y = numpy.concatenate((firstvals, y, lastvals))
+    return numpy.convolve( m[::-1], y, mode = 'valid')
 
 file_in, datain, ps, cal1Mag,cal2Mag = inputData()
 
