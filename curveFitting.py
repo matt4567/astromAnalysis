@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 from scipy import asarray as ar,exp
 import operator
 import time
-#from astropy.time import time
+from astropy.time import Time
 
 dataSets = []
 ps = []
@@ -25,8 +25,8 @@ def inputData():
    #V - band start
     global color
      
-    color = "V"
-  #  color = "B"
+  #  color = "V"
+    color = "B"
 
     if (color == "B"):
        
@@ -123,7 +123,7 @@ def invGauss(inp, a, x0, sigma):
     return x0 + (-2 * sigma**2 * numpy.log(inp / a))**0.5
 
 def fitData(time, magnitude, minimum):
-    '''Fit data to Guassian distribution'''
+    '''Fit data to Guassian distribution, NB: miniumum is index of minimum'''
 
     lower = int(minimum - len(time) * 0.1)
     upper = int(minimum + len(time) * 0.1)
@@ -131,8 +131,8 @@ def fitData(time, magnitude, minimum):
 
  #   print lower, upper
 
- #   plt.plot(time, magnitude, 'o', ms=2)
-  #  plt.title("full data")
+   # plt.plot(time, magnitude, 'o', ms=2)
+   # plt.title("full data")
   #  plt.show()
 
   
@@ -140,8 +140,8 @@ def fitData(time, magnitude, minimum):
 
     y = ar(magnitude[lower:upper])
 
-#    plt.plot(x, y)
-#    plt.show()
+  #  plt.plot(x, y)
+  #  plt.show()
     total = 0
     for i, val in enumerate(x):
         total += val * y[i]
@@ -152,18 +152,19 @@ def fitData(time, magnitude, minimum):
     sigma = sum(y*(x-mean)**2)/sum(y) 
                   
     popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
+ #   print pcov
 
- #   plt.plot(x,y,'b+:',label='data')
- #   plt.plot(x,gaus(x,*popt),'ro:',label='fit')
+  #  plt.plot(x,y,'b+:',label='data')
+  #  plt.plot(x,gaus(x,*popt),'ro:',label='fit')
 
     minVal = max(gaus(x, *popt))
     minX = invGauss(minVal, *popt)
 
- #   plt.legend()
- #   plt.title('Gaussian fit')
- #   plt.xlabel('Times')
- #   plt.ylabel('Magnitudes')
- #   plt.show()
+  #  plt.legend()
+  #  plt.title('Gaussian fit')
+  #  plt.xlabel('Times')
+  #  plt.ylabel('Magnitudes')
+  #  plt.show()
 
     return minX
 
@@ -202,30 +203,50 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
         lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, time2, magnitude2)
         
         
-    
+    lightCurveTimes, lightCurveMags = (list(t) for t in zip(*sorted(zip(lightCurveTimes, lightCurveMags))))
+   # lightCurveTimes, lightCurveMags = sortLightCurve(lightCurveTimes, lightCurveMags)
     cutoff = lightCurveTimes[0] + period
     
-    lightCurveCompleteTimes = lightCurveTimes
-    lCBad = [x for x in lightCurveCompleteTimes if x > cutoff]
-    trigger = True
+   
+
+ 
+    while ((lightCurveTimes[-1] - lightCurveTimes[0]) > period):
+   #     print "period is", lightCurveTimes[-1] - lightCurveTimes[0]
+        assert lightCurveTimes[0] is min(lightCurveTimes)
+        #cut the arrays at after one period
+        lightCurveTimesCut = [x for x in lightCurveTimes if x < cutoff]
+        lightCurveMagsCut = lightCurveMags[:len(lightCurveTimesCut)]
+
+ #       print lightCurveTimesCut[0]
+
+        #put the remainder from the cust into their own arrays
+        lightCurveTimesRollover = lightCurveTimes[len(lightCurveTimesCut):]
+        lightCurveMagsRollover = lightCurveMags[len(lightCurveTimesCut):]
+
+        #shift the time array back a period
+        lightCurveTimesRollover = [x - period for x in lightCurveTimesRollover]
+        lightCurveTimes = lightCurveTimesRollover + lightCurveTimesCut
+        lightCurveMags = lightCurveMagsRollover + lightCurveMagsCut
+
+ #   print "period is ", lightCurveTimes[-1] - lightCurveTimes[0]
+    lightCurveTimes, lightCurveMags = (list(t) for t in zip(*sorted(zip(lightCurveTimes, lightCurveMags))))
+
+
+
+
+
+    #shift the timings so that 
+    lightCurveTimes, lightCurveMags = findMinPos(lightCurveTimes, lightCurveMags, period)
+
+
   
-    lCBad = [x for x in lightCurveCompleteTimes if x > cutoff]
-    trigger = False
-    lightCurveTimesCut = [x for x in lightCurveCompleteTimes if x < cutoff]
-    lightCurveTimesRollover = lightCurveCompleteTimes[len(lightCurveTimesCut):]
-    lightCurveMagsRollover = lightCurveMags[len(lightCurveTimesCut):]
-    lightCurveTimesRollover = [x - period for x in lightCurveTimesRollover]
-    lightCurveMagsCut = lightCurveMags[:len(lightCurveTimesCut)]
-    lightCurveCompleteMags, lightCurveCompleteTimes = combArrays(lightCurveTimesCut, lightCurveMagsCut,\
-                                                                 lightCurveTimesRollover, lightCurveMagsRollover)
-   # ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
-    lightCurveCompleteTimes = findMinPos(lightCurveCompleteTimes, lightCurveCompleteMags, period)
-    lightCurveCompleteTimes, lightCurveCompleteMags = genBinnedLines([lightCurveCompleteTimes, lightCurveCompleteMags])
-   # lightCurveCompleteTimes = [x - lightCurveCompleteTimes[0] for x in lightCurveCompleteTimes]
+    lightCurveTimes, lightCurveMags = genBinnedLines([lightCurveTimes, lightCurveMags])
+    lightCurveTimes = [x - lightCurveTimes[0] for x in lightCurveTimes]
+    minNeg = min(lightCurveTimes)
+    lightCurveTimes = [x + abs(minNeg) for x in lightCurveTimes]
 
-    ax.plot(lightCurveCompleteTimes, lightCurveCompleteMags, 'o', ms = 2)
+    ax.plot(lightCurveTimes, lightCurveMags, 'o', ms = 2)
 
-   # ax.plot(lightCurveTimes, lightCurveMags, 'o', ms = 2)
     if (color == "B"):
         plt.title("Complete light curve B - band")
       #  numpy.save("lCTimesB", lightCurveCompleteTimes)
@@ -237,7 +258,41 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
     plt.gca().invert_yaxis()
     plt.show()
 
-    return lightCurveCompleteTimes, lightCurveCompleteMags
+    return lightCurveTimes, lightCurveMags
+
+
+def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
+    
+    return m0 + a1 * numpy.cos(2 * numpy.pi * x) + b1 * numpy.sin(2 * numpy.pi * x) + \
+        a2 * numpy.cos(4 * numpy.pi  * x ) + b2 * numpy.sin(4 * numpy.pi * x )  + \
+        a3 * numpy.cos(6 * numpy.pi  * x ) + b3 * numpy.sin(6 * numpy.pi * x )  + \
+        a4 * numpy.cos(8 * numpy.pi  * x ) + b4 * numpy.sin(8 * numpy.pi * x )
+  
+
+        
+
+def fitFourier(times, mags, period):
+    # fits
+    x = ar(times)
+  #  print x
+    x = x / period
+    
+    y = -ar(mags)
+   # popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
+    popt, pcov = curve_fit(fourier4, x, y, p0=[1, 1, 1, 1, 1, 1, 1,1, -14.5])
+ #   print pcov
+    print "a2",  popt[2]
+    print "a4", popt[6]
+  #  print popt
+
+    # further plots
+    newMags = fourier4(x,*popt)
+   
+    p2, = plt.plot(x, newMags, 'o', ms = 3)
+    p3, = plt.plot(x, y, 'o', ms = 2)
+    plt.title("Fourier fitting of light curve")
+
+    plt.show()
     
 
 def findMinPos(lCTimes, lCMags, period):
@@ -246,18 +301,26 @@ def findMinPos(lCTimes, lCMags, period):
 
     index = lCMags.index(minVal)
 
-    timeCut = lCTimes[index]
 
-    badVals = [j for j in lCTimes if j < timeCut]
-    while len(badVals) > 0:
-        
-        badVals = [j for j in lCTimes if j < timeCut]
-       
-        lCTimes = [x + period if x < timeCut else x for x in lCTimes]
-        
+    for i in range(len(lCTimes) - 1):
+        if i != 0:
+            assert lCTimes[i] >= lCTimes[i-1]
 
-   # origin = fitData(lCTimes, lCMags, index)
-    return lCTimes
+    
+
+    timesCut = lCTimes[index:]
+    magsCut = lCMags[index:]
+
+    timesRollover = lCTimes[:index]
+    magsRollover = lCMags[:index]
+    timesRollover = [x + period for x in timesRollover]
+    lCTimes = timesCut + timesRollover
+    lCMags = magsCut + magsRollover
+ 
+
+ 
+
+    return lCTimes, lCMags
     
     
 
@@ -333,8 +396,67 @@ def findPeriod(tGuess, alpha, times, magnitudes):
 
     return tGuess
 
+def binarySearch(val, data):
+    first = 0
+    last = len(data) - 1
 
     
+   
+
+    while first <= last:
+        print "value", val
+        
+        midpoint = (first + last) // 2
+        print "midpoint", midpoint
+        if data[midpoint] == val:
+            
+            return midpoint
+            
+        else:
+            if val < data[midpoint]:
+                
+                last = midpoint - 1
+                midpoint -= 1
+            else:
+                
+                first = midpoint + 1
+                midpoint += 1
+
+    
+    return midpoint
+    
+
+def sortLightCurve(time, mags):
+    sortTime = []
+    sortMags = []
+    
+
+    for i, t in enumerate(time):
+
+
+        if sortTime != []:
+       
+
+        
+
+           
+            index = binarySearch(t, sortTime)
+
+            print "index returned", index
+           
+            sortTime.insert(index, t)
+            sortMags.insert(index, mags[i])
+            print sortTime
+
+        else:
+            sortTime.append(t)
+            sortMags.append(mags[i])
+            
+           
+       
+    return sortTime, sortMags
+            
+            
 
 
 def combArrays(times1, vals1, times2, vals2):
@@ -372,15 +494,20 @@ def combArrays(times1, vals1, times2, vals2):
             times2.remove(times2[0])
     return combVals, combTimes
 
-def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
+def getLightCurveAtTime(time, period, lightCurveTimes, lightCurveMags):
     '''Find the position in the lightCurve at the given time'''
-    mjdtime = time.mjd[0]
-    deltaTime = int(mjdtime - lightCurveTimes[0])
+    t = Time(time, format='isot')
+    mjdtime = t.mjd[0]
+    deltaTime = mjdtime - min(lightCurveTimes)
+   # print deltaTime
+    noPeriods = math.floor(deltaTime / period)
+    newTimes = [x + noPeriods * period for x in lightCurveTimes]
+   # print newTimes
+   # print mjdtime
 
-    newTimes = [x + deltaTime for x in lightCurveTimes]
-
-    plt.plot(newTimes, lightCurveMags)
-    plt.plot(mjdtime, label = "Time")
+    plt.plot(newTimes, lightCurveMags, 'o', ms = 2)
+    plt.plot(mjdtime, 15, 'x', ms = 10)
+    plt.gca().invert_yaxis()
     plt.show()
     
 
@@ -389,16 +516,24 @@ def getLightCurveAtTime(time, lightCurveTimes, lightCurveMags):
 
 file_in, datain, ps, cal1Mag,cal2Mag = inputData()
 
-
 if (color == "V"):
     period = findPeriods([file_in] + datain, cal1Mag, cal2Mag, ps)
     file_in, datain, ps, cal1Mag,cal2Mag = inputData()
 if (color == "B"):
     period = 0.295562569469
 
+
+
 lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
 
 
-#time = ['2018-02-25T22:00:00.123456789']
+fitFourier(lcTimes, lcMags, period)
+time = ['2018-09-06T22:00:00.123456789']
 
-#getLightCurveAtTime(time, lcTimes, lcMags)
+getLightCurveAtTime(time,period, lcTimes, lcMags)
+#a = [1,34,3,43,22,1,25,33,1,2,3]
+#b = [2,3,2,1,3,2,3,1,2,32,1]
+
+#print a,b#
+#a, b = sortLightCurve(a,b)
+#print a,b
