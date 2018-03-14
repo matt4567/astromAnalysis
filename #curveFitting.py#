@@ -30,7 +30,9 @@ def inputData():
 
     if (color == "B"):
        
-        cal2Mag = 14.277
+        cal cal2Mag = 14.277
+        
+        cal1Mag = 14.612Mag = 14.277
         
         cal1Mag = 14.61
 
