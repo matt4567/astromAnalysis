@@ -27,7 +27,7 @@ def inputData():
     global color
      
     color = "V"
-    color = "B"
+    #color = "B"
 
     if (color == "B"):
        
@@ -96,7 +96,6 @@ def extractData(data, cal1Mag, cal2Mag):
     trigger2 = False
     for line in data:
         if (trigger):
-            
             
             time.append(float(line.split()[0]))
           #  magA = float(line.split()[1]) - float(line.split()[3])
@@ -248,7 +247,7 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
 
  
     while (abs(lightCurveTimes[-1] - lightCurveTimes[0]) > period):
-        print "period is", lightCurveTimes[-1] - lightCurveTimes[0]
+   #     print "period is", lightCurveTimes[-1] - lightCurveTimes[0]
         assert lightCurveTimes[0] is min(lightCurveTimes)
         #cut the arrays at after one period
         lightCurveTimesCut = [x for x in lightCurveTimes if x < cutoff]
@@ -267,7 +266,7 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
         lightCurveTimes, lightCurveMags = (list(t) for t in zip(*sorted(zip(lightCurveTimes, lightCurveMags))))
 
 
-        print "new period is", lightCurveTimes[-1] - lightCurveTimes[0]
+    #    print "new period is", lightCurveTimes[-1] - lightCurveTimes[0]
 
  #   print "period is ", lightCurveTimes[-1] - lightCurveTimes[0]
     
@@ -314,32 +313,6 @@ def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
 
         
 
-def fitFourier(times, mags, period):
-    # fits
-    x = ar(times)
-  #  print x
-    x = x / period
-    
-    y = -ar(mags)
-   # popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
-    popt, pcov = curve_fit(fourier4, x, y, p0=[1, 1, 1, 1, 1, 1, 1,1, -14.5])
- #   print pcov
-    print "a2",  popt[2]
-    print "a4", popt[6]
-    print popt
-  #  print popt
-
-    # further plots
-    newMags = fourier4(x,*popt)
-   
-    p2, = plt.plot(x, newMags, 'o', ms = 3, label="Fourier fit")
-    p3, = plt.plot(x, y, 'ro:', ms = 2, label = "Our data")
-    plt.legend()
-    plt.title("Fourier fitting of light curve")
-    plt.xlabel("Time/days")
-    plt.ylabel("Apparent magnitude")
-
-    plt.show()
 
 def findMinPos(lCTimes, lCMags, period):
     '''Find minimum/start point for light curves'''
@@ -570,14 +543,13 @@ if (color == "B"):
     period = 0.295562569469
 
 
-
 lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
 
 
-fitFourier(lcTimes, lcMags, period)
-time = ['2018-09-06T22:00:00.123456789']
+fitFourier(lcTimes, lcMags, period, True)
+#time = ['2018-09-06T22:00:00.123456789']
 
-getLightCurveAtTime(time,period, lcTimes, lcMags)
+#getLightCurveAtTime(time,period, lcTimes, lcMags)
 #a = [1,34,3,43,22,1,25,33,1,2,3]
 #b = [2,3,2,1,3,2,3,1,2,32,1]
 

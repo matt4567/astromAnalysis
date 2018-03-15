@@ -42,7 +42,7 @@ def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
         a4 * numpy.cos(8 * numpy.pi  * x ) + b4 * numpy.sin(8 * numpy.pi * x )
   
 
-def fitFourier(times, mags, period):
+def fitFourier(times, mags, period, plot):
     # fits
     x = ar(times)
     
@@ -71,17 +71,17 @@ def fitFourier(times, mags, period):
     beforeMags = fourier4(beforeTimes, *popt)
     beforeTimes = [a * period for a in beforeTimes]
 
-   
-    p2, = plt.plot(x, newMags, 'o', ms = 3, label="Fourier fit")
-    p3, = plt.plot(x, y, 'ro:', ms = 2, label = "Our data")
-    p4, = plt.plot(extTimes, extMags, 'x', ms = 2, label = "Extendedfit")
-    p5, = plt.plot(beforeTimes, beforeMags, 'x', ms=2, label="Before fit")
-    plt.legend()
-    plt.title("Fourier fitting of light curve")
-    plt.xlabel("Time/days")
-    plt.ylabel("Apparent magnitude")
+    if plot == True:
+        p2, = plt.plot(x, newMags, 'o', ms = 3, label="Fourier fit")
+        p3, = plt.plot(x, y, 'ro:', ms = 2, label = "Our data")
 
-    plt.show()
+        plt.legend()
+        plt.gca().invert_yaxis()
+        plt.title("Fourier fitting of light curve")
+        plt.xlabel("Time/days")
+        plt.ylabel("Apparent magnitude")
+
+        plt.show()
 
     return beforeTimes, beforeMags, extTimes, extMags
 
@@ -89,8 +89,8 @@ def fitFourier(times, mags, period):
 def getData():
     
     time, mags = extractData(input_file, 13.658, 13.323)
-    print time[0:5]
+   
 
-    return fitFourier(time, mags, 0.295609)
+    return fitFourier(time, mags, 0.295609, False)
 
     
