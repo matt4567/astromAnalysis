@@ -55,6 +55,7 @@ def fitFourier(times, mags, period, plot):
  #   print pcov
     print "a2",  popt[2]
     print "a4", popt[6]
+    print "b1", popt[1]
     print popt
   #  print popt
 
