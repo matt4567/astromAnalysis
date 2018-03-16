@@ -1,0 +1,38 @@
+import matplotlib.pyplot as plt
+input_file = open("summary.obs")
+
+
+def extractData(data, cal1Mag, cal2Mag):
+    '''Pull out data from summary.obs files and calculate apparent magnitudes'''
+    time = []
+    magnitude = []
+    trigger = True
+    trigger2 = False
+    for line in data:
+        if (trigger):
+            
+            
+            time.append(float(line.split()[0]))
+          #  magA = float(line.split()[1]) - float(line.split()[3])
+          #  magB = float(line.split()[1]) - float(line.split()[5])
+        #    magTot = (magA + magB) / 2
+            delta1 = cal1Mag - float(line.split()[3])
+          
+            delta2 = cal2Mag - float(line.split()[5])
+            avDelta = (delta1 + delta2) / 2
+            magTot = float(line.split()[1]) + avDelta
+      
+            magnitude.append(magTot)
+        else:
+            #stops running first line
+            trigger = True
+    data.close()
+
+    return time, magnitude
+
+time, mags = extractData(input_file, 13.658, 13.323)
+time = time[math.floor(len(time)/2):]
+mags = mags[math.floor(len(time)/2):]
+
+plt.plot(time, mags)
+plt.show()
