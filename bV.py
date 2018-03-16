@@ -30,35 +30,59 @@ while(False):
         print len(b_Mags)
 bminusV = []
 aVals = []
+scale = []
 diff = len(v_Mags) - len(b_Mags)
 print diff
 if diff > 0:
+    scale = b_Times
     for i,t in enumerate(b_Times):
         a = min(v_Times, key=lambda x:abs(x-t))
         index = numpy.where(v_Times == a)
-        print index
+      #  print b_Mags[i], v_Mags[index[0]][0], b_Mags[i] - v_Mags[index[0]][0]
         
-        bminusV.append(b_Mags[i] - v_Mags[index[0]])
+        bminusV.append(b_Mags[i] - v_Mags[index[0]][0])
 
 if diff < 0:
+    scale = v_Times
     for i,t in enumerate(v_Times):
         a = min(b_Times, key=lambda x:abs(x-t))
-
+       
+        
         if (a > 0.2769 and a < 0.27694):
             bminusV.append(0)
             continue
 
-
+        
        
         index = numpy.where(b_Times == a)
+     #   print t, b_Times[index[0]]
       #  print index
-        bminusV.append(b_Mags[index[0]] - v_Mags[i])
+        print b_Mags[index[0]][0], v_Mags[i], b_Mags[index[0]][0] - v_Mags[i]
+        bminusV.append(b_Mags[index[0]][0] - v_Mags[i])
+        #
+        #print bminusV[-1]
 
 if diff == 0:
+    scale = v_Times
     for i, t in enumerate(b_Mags):
         bminusV.append(t - v_Mags[i])
 
+
 print len(v_Times), len(bminusV)
+print "B-V color ", numpy.mean(bminusV)
+
+diff = 50
+diffB = (len(b_Times) // diff) - 1
+diffV = (len(v_Times) // diff) - 1
+bminusV = []
+for i in range(diff):
+
+    bminusV.append(numpy.mean(b_Mags[(i * diffB): (i + 1) * diffB]) - numpy.mean(v_Mags[i * diffV: (i + 1) * diffV]))
+
+
+print bminusV
+
+
 plt.suptitle("B-V analysis")
 plt.subplot(221)
 
@@ -73,7 +97,8 @@ plt.title("B - colour magnitude")
 
 plt.subplot(223)
 
-plt.plot(bminusV)
+
+plt.plot(bminusV, 'o', ms = 2)
 
 plt.title("B - V")
 
@@ -81,7 +106,7 @@ plt.subplot(224)
 temperatures = []
 for bv in bminusV:
     temperatures.append(4600 * (1 / (0.92 * (bv) + 1.7) + (1 / 0.92 * bv + 0.62)))
-plt.plot(temperatures)
+plt.plot(temperatures, 'o', ms =2)
 plt.title("Temperature Variation")
 plt.show()
 #plt.savefig("bVplot.png")

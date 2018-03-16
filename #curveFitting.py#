@@ -27,7 +27,7 @@ def inputData():
     global color
      
     color = "V"
-    #color = "B"
+    color = "B"
 
     if (color == "B"):
        
@@ -213,9 +213,9 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
         timePre, magsPre, timePost, magsPost = getData()
        
        
-        noise = numpy.random.normal(0, 0.1, magsPre.shape)
+        noise = numpy.random.normal(0, 0.07, magsPre.shape)
         signalPre = noise + magsPre
-        noise = numpy.random.normal(0, 0.1, magsPost.shape)
+        noise = numpy.random.normal(0, 0.06, magsPost.shape)
         signalPost = noise + magsPost
 
         magsPre = signalPre.tolist()
@@ -346,10 +346,10 @@ def findMinPos(lCTimes, lCMags, period):
 
 def genBinnedLines(data):
     '''Bin the data in groups to sharpen and reduce spread'''
-  
+    l = 3
     timeBinned = []
     magnitudeBinned = []
-    n = 3
+    n = l
     curTotal = 0
    
     for i in data[0]:
@@ -359,13 +359,13 @@ def genBinnedLines(data):
             n -= 1
          
         else:
-            n = 3
+            n = l
           
             timeBinned.append(curTotal / n)
            
             curTotal = 0
 
-    n = 3
+    n = l
     curTotal = 0
     for m in data[1]:
    
@@ -373,7 +373,7 @@ def genBinnedLines(data):
             curTotal += m
             n -= 1
         else:
-            n = 3
+            n = l
             magnitudeBinned.append(curTotal / n)
   
         
