@@ -1,0 +1,311 @@
+def inputData():
+    '''Inport data and set colour band'''
+   #V - band start
+    global color
+     
+    color = "V"
+    color = "B"
+
+    if (color == "B"):
+       
+        cal2Mag = 14.277
+        
+        cal1Mag = 14.61
+
+        file_in = open('18_02_15/summary.obs')
+        data1 = open('mystack/summary.obs')
+        data2 = open('18_02_13/summary.obs')
+        data3 = open('18_02_09/summary.obs')
+        datain = [data1, data2, data3]
+
+    if (color == "V"):
+
+        cal1Mag = 13.658
+
+        cal2Mag = 13.323
+        file_in = open('18_02_06/summary.obs')
+        data2 = open('18_01_31/summary.obs')
+        data3 = open('18_01_29/summary.obs')
+        datain = [data3, data2]
+        
+
+#Set period of orbits
+   # period = float(raw_input('What prop are you looking at? '))
+    period = 0.2956
+    
+    return file_in, datain, period, cal1Mag, cal2Mag
+
+def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
+    
+    return m0 + a1 * numpy.cos(2 * numpy.pi * x) + b1 * numpy.sin(2 * numpy.pi * x) + \
+        a2 * numpy.cos(4 * numpy.pi  * x ) + b2 * numpy.sin(4 * numpy.pi * x )  + \
+        a3 * numpy.cos(6 * numpy.pi  * x ) + b3 * numpy.sin(6 * numpy.pi * x )  + \
+        a4 * numpy.cos(8 * numpy.pi  * x ) + b4 * numpy.sin(8 * numpy.pi * x )
+  
+
+        
+def findMinPos(lCTimes, lCMags, period):
+    '''Find minimum/start point for light curves'''
+    minVal = max(lCMags)
+
+    index = lCMags.index(minVal)
+
+
+    for i in range(len(lCTimes) - 1):
+        if i != 0:
+            assert lCTimes[i] >= lCTimes[i-1]
+
+    
+
+    timesCut = lCTimes[index:]
+    magsCut = lCMags[index:]
+
+    timesRollover = lCTimes[:index]
+    magsRollover = lCMags[:index]
+    timesRollover = [x + period for x in timesRollover]
+    lCTimes = timesCut + timesRollover
+    lCMags = magsCut + magsRollover
+ 
+
+ 
+
+    return lCTimes, lCMags
+
+
+
+def findPeriods(data, cal1Mag, cal2Mag, period):
+    timesOfMins = []
+    for d in data:
+        time, magnitude = extractData(d, cal1Mag, cal2Mag)
+        minimum = max(magnitude)
+        index = magnitude.index(minimum)
+        timesOfMins.append(fitData(time, magnitude, index))
+   
+    for t_in, time in enumerate(timesOfMins):
+        if (numpy.isinf(time)):
+            del timesOfMins[t_in]
+    periodOpts = []
+    counter = 1
+    index = 0
+
+    while (index < len(timesOfMins)):
+        while (counter < len(timesOfMins)):
+           
+            periodOpts.append(abs(timesOfMins[counter] - timesOfMins[index]))
+            counter += 1
+        index += 1
+        counter = index + 1
+    n = periodOpts[0] / period
+    n_adjusted = round(n * 2) / 2
+
+    period_adjusted = periodOpts[0] /  n_adjusted 
+    print "Fitted period is", period_adjusted
+    return period_adjusted
+    
+
+def extractData(data, cal1Mag, cal2Mag):
+    '''Pull out data from summary.obs files and calculate apparent magnitudes'''
+    time = []
+    magnitude = []
+    trigger = True
+    trigger2 = False
+    for line in data:
+        if (trigger):
+            
+            
+            time.append(float(line.split()[0]))
+          #  magA = float(line.split()[1]) - float(line.split()[3])
+          #  magB = float(line.split()[1]) - float(line.split()[5])
+        #    magTot = (magA + magB) / 2
+            delta1 = cal1Mag - float(line.split()[3])
+          
+            delta2 = cal2Mag - float(line.split()[5])
+            avDelta = (delta1 + delta2) / 2
+            magTot = float(line.split()[1]) + avDelta
+      
+            magnitude.append(magTot)
+        else:
+            #stops running first line
+            trigger = True
+    data.close()
+
+    return time, magnitude
+
+def gaus(x,a,x0,sigma):
+    '''define gaussian distribution'''
+    return a*exp(-(x-x0)**2/(2*sigma**2))
+
+
+
+def invGauss(inp, a, x0, sigma):
+    return x0 + (-2 * sigma**2 * numpy.log(inp / a))**0.5
+
+def genBinnedLines(data):
+    '''Bin the data in groups to sharpen and reduce spread'''
+  
+    timeBinned = []
+    magnitudeBinned = []
+    n = 3
+    curTotal = 0
+   
+    for i in data[0]:
+      
+        if n > 0:
+            curTotal += i
+            n -= 1
+         
+        else:
+            n = 3
+          
+            timeBinned.append(curTotal / n)
+           
+            curTotal = 0
+
+    n = 3
+    curTotal = 0
+    for m in data[1]:
+   
+        if n > 0:
+            curTotal += m
+            n -= 1
+        else:
+            n = 3
+            magnitudeBinned.append(curTotal / n)
+  
+        
+            curTotal = 0
+
+  
+
+    return timeBinned, magnitudeBinned
+
+
+
+            
+    
+
+def onclick(event):
+    '''define superX1 on pyplot.plot click'''
+    global superX1
+    superX1.append(event.xdata)
+
+   
+
+def findPeriod(tGuess, alpha, times, magnitudes):
+    '''Iterative method for finding minimum of lightcurve'''
+    offsetMean = 100
+
+    while (offsetMean > .010):
+        value = min(times, key=lambda x:abs(x-tGuess))
+       
+        #print times
+        index = times.index(value)
+      
+        offset = []
+       
+
+        if (tGuess > times[index]):
+            index += 1
+        for i in range(20):
+            offset.append(magnitudes[index + i] - magnitudes[index - i])
+            
+        offsetMean = numpy.mean(offset)
+        tGuess -= offsetMean * alpha
+
+    return tGuess
+
+def binarySearch(val, data):
+    first = 0
+    last = len(data) - 1
+
+    
+   
+
+    while first <= last:
+        print "value", val
+        
+        midpoint = (first + last) // 2
+        print "midpoint", midpoint
+        if data[midpoint] == val:
+            
+            return midpoint
+            
+        else:
+            if val < data[midpoint]:
+                
+                last = midpoint - 1
+                midpoint -= 1
+            else:
+                
+                first = midpoint + 1
+                midpoint += 1
+
+    
+    return midpoint
+
+
+def sortLightCurve(time, mags):
+    sortTime = []
+    sortMags = []
+    
+
+    for i, t in enumerate(time):
+
+
+        if sortTime != []:
+       
+
+        
+
+           
+            index = binarySearch(t, sortTime)
+
+            print "index returned", index
+           
+            sortTime.insert(index, t)
+            sortMags.insert(index, mags[i])
+            print sortTime
+
+        else:
+            sortTime.append(t)
+            sortMags.append(mags[i])
+            
+           
+       
+    return sortTime, sortMags
+
+
+def combArrays(times1, vals1, times2, vals2):
+    '''Combine 2 arrays at the correct times'''
+    combVals = []
+    combTimes = []
+    while (len(vals1) != 0 or len(vals2) != 0):
+    #    print len(vals2), len(times2)
+        
+
+        if(len(times2) == 0):
+            combVals.append(vals1[0])
+            combTimes.append(times1[0])
+            vals1.remove(vals1[0])
+            times1.remove(times1[0])
+        elif (len(times1) == 0):
+            combVals.append(vals2[0])
+            combTimes.append(times2[0])
+            vals2.remove(vals2[0])
+            times2.remove(times2[0])
+
+        elif (times1[0] <= times2[0]):
+            combVals.append(vals1[0])
+            combTimes.append(times1[0])
+            vals1.remove(vals1[0])
+            times1.remove(times1[0])
+            
+      
+            
+        
+        else:
+            combVals.append(vals2[0])
+            combTimes.append(times2[0])
+            vals2.remove(vals2[0])
+            times2.remove(times2[0])
+    return combVals, combTimes

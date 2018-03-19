@@ -84,14 +84,14 @@ def sort_asassn(file_in):
 
     time, magnitude = (list(t) for t in zip(*sorted(zip(time, magnitude))))
         
-    plt.figure()
-    plt.plot(time, magnitude, 'o', ms = 3)
-    plt.gca().invert_yaxis()
+   # plt.figure()
+   # plt.plot(time, magnitude, 'o', ms = 3)
+   # plt.gca().invert_yaxis()
 
     #plt.figure()
     #plt.plot(orig_times, magnitude,'o', ms=3)
     #plt.gca().invert_yaxis()
-    plt.show()
+   # plt.show()
 
     return time, magnitude
 
@@ -249,7 +249,7 @@ def O_C():
     #plt.plot(obs_mins,O_C,'b+:',label='data')
     #plt.plot(obs_mins,expo(obs_mins,*popt),'ro:',label='fit')
 
-    popt,pcov = curve_fit(expo,some_data_x,some_data_y,p0=[P_ours,5.00,60000])
+    popt,pcov = curve_fit(expo,some_data_x,some_data_y,p0=[P_ours,2.00,100000])
     print popt, pcov
     plt.plot(some_data_x,some_data_y,'b+:',label='data')
     plt.plot(some_data_x,expo(some_data_x,*popt),'ro:',label='fit')
