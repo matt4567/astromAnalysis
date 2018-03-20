@@ -543,17 +543,17 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     y = numpy.concatenate((firstvals, y, lastvals))
     return numpy.convolve( m[::-1], y, mode = 'valid')
 
-color = "B"
-file_in, datain, ps, cal1Mag,cal2Mag = inputData(color)
-
-if (color == "V"):
-    period = findPeriods([file_in] + datain, cal1Mag, cal2Mag, ps)
-    file_in, datain, ps, cal1Mag,cal2Mag = inputData()
-if (color == "B"):
-    period = 0.295609
-
-
-lcTimesB, lcMagsB = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
+# color = "B"
+# file_in, datain, ps, cal1Mag,cal2Mag = inputData(color)
+#
+# if (color == "V"):
+#     period = findPeriods([file_in] + datain, cal1Mag, cal2Mag, ps)
+#     file_in, datain, ps, cal1Mag,cal2Mag = inputData()
+# if (color == "B"):
+#     period = 0.295609
+#
+#
+# lcTimesB, lcMagsB = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
 
 color = "V"
 file_in, datain, ps, cal1Mag,cal2Mag = inputData(color)
