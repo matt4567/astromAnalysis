@@ -125,18 +125,18 @@ def fitData(time, magnitude, minimum, scalefactor):
 
 
    # print lower, upper, minimum
-
-    #plt.plot(time, magnitude, 'o', ms=2)
-    #plt.title("full data")
-    #plt.show()
+    plt.figure()
+    plt.plot(time, magnitude, 'o', ms=2)
+    plt.title("full data")
+    plt.show()
 
   
     x = ar(time[lower:upper])
 
     y = ar(magnitude[lower:upper])
-
-    #plt.plot(x, y, 'o')
-    #plt.show()
+    plt.figure()
+    plt.plot(x, y, 'o')
+    plt.show()
     total = 0
     for i, val in enumerate(x):
         total += val * y[i]
@@ -154,18 +154,20 @@ def fitData(time, magnitude, minimum, scalefactor):
     sigma = sum(y*(x-mean)**2)/sum(y) 
                   
     popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
-
-   # plt.plot(x,y,'b+:',label='data')
-   # plt.plot(x,gaus(x,*popt),'ro:',label='fit')
+    plt.figure()
+    plt.plot(x,y,'b+:',label='data')
+    plt.plot(x,gaus(x,*popt),'ro:',label='fit')
 
     minVal = max(gaus(x, *popt))
     minX = invGauss(minVal, *popt)
 
-   # plt.legend()
-   # plt.title('Gaussian fit')
-   # plt.xlabel('Times')
-   # plt.ylabel('Magnitudes')
-   # plt.show()
+    plt.legend()
+    #plt.title('Gaussian fit')
+    plt.xlabel('Times')
+    plt.ylabel('Magnitudes')
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.show()
 
     return popt[1]
 
@@ -277,4 +279,8 @@ our_minimum = magnitude_ours.index(max(magnitude_ours))
 #print find_min_n(inputData("lc507905.dat"),4)
 #print as_minimum
 #print fitData(time_ours, magnitude_ours, our_minimum)
-O_C()
+#O_C()
+
+time_ours, magnitude_ours = extractData(inputData("18_01_31/summary.obs"))
+our_minimum = magnitude_ours.index(max(magnitude_ours))
+fitData(time_ours, magnitude_ours, our_minimum, 0.1)
