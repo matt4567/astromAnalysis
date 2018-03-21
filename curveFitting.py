@@ -290,12 +290,12 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
 
     if (color == "B"):
         plt.title("Complete light curve B - band")
-        numpy.save("lCTimesB", lightCurveTimes)
-        numpy.save("lCMagB", lightCurveMags)
+        #numpy.save("lCTimesB", lightCurveTimes)
+        #numpy.save("lCMagB", lightCurveMags)
     if (color == "V"):
         plt.title("Complete light curve V - band")
-        numpy.save("lCTimesV", lightCurveTimes)
-        numpy.save("lCMagV", lightCurveMags)
+        #numpy.save("lCTimesV", lightCurveTimes)
+        #numpy.save("lCMagV", lightCurveMags)
     plt.gca().invert_yaxis()
     plt.xlabel("Time/days")
     plt.ylabel("Apparent magnitude")

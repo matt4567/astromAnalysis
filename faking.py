@@ -10,6 +10,7 @@ def extractData(data, cal1Mag, cal2Mag):
     '''Pull out data from summary.obs files and calculate apparent magnitudes'''
     time = []
     magnitude = []
+	
     trigger = True
     trigger2 = False
     for line in data:
@@ -53,9 +54,14 @@ def fitFourier(times, mags, period, plot):
    # popt,pcov = curve_fit(gaus,x,y,p0=[10,mean,sigma])
     popt, pcov = curve_fit(fourier4, x, y, p0=[1, 1, 1, 1, 1, 1, 1,1, -14.5])
  #   print pcov
-    print "a2",  popt[2]
-    print "a4", popt[6]
-    print "b1", popt[1]
+    print "a1", popt[0], "+/-", numpy.sqrt(pcov[0,0])
+    print "a2",  popt[2],"+/-", numpy.sqrt(pcov[2,2])
+    print "a3",  popt[4],"+/-", numpy.sqrt(pcov[4,4])
+    print "a4",  popt[6],"+/-", numpy.sqrt(pcov[6,6])
+    print "b1", popt[1],"+/-", numpy.sqrt(pcov[1,1])
+    print "b2",  popt[3],"+/-", numpy.sqrt(pcov[3,3])
+    print "b3",  popt[5],"+/-", numpy.sqrt(pcov[5,5])
+    print "b4",  popt[7],"+/-", numpy.sqrt(pcov[7,7])
     print popt
   #  print popt
 
@@ -78,9 +84,10 @@ def fitFourier(times, mags, period, plot):
 
         plt.legend()
         plt.gca().invert_yaxis()
-        plt.title("Fourier fitting of light curve")
-        plt.xlabel("Time/days")
+        #plt.title("Fourier fitting of light curve")
+        plt.xlabel("Phase")
         plt.ylabel("Apparent magnitude")
+		
 
         plt.show()
 
