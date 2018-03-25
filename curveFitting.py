@@ -27,7 +27,7 @@ def inputData():
     global color
      
     color = "V"    #comment these out to switch bands
-   # color = "B"
+    color = "B"
 
     if (color == "B"):
        
@@ -206,9 +206,11 @@ def buildLightCurve(file_in, datain, period, minimum, cal1Mag, cal2Mag):
    # ax.plot(timeBinned, magnitudeBinned)
     lightCurveMags = []
     lightCurveTimes = []
+    lightCurveErrors = []
 
     lightCurveMags.extend(magnitude)
     lightCurveTimes.extend(time)
+    lightCurveErrors.extend(error)
 
    
   
@@ -227,11 +229,11 @@ def buildLightCurve(file_in, datain, period, minimum, cal1Mag, cal2Mag):
         
         time2 = [x + ((math.ceil(numPeriods)) * period) for x in time2]
    
-        lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, time2, magnitude2)
+        lightCurveMags, lightCurveTimes, lightCurveErrors = combArrays(lightCurveTimes, lightCurveMags, lightCurveErrors, time2, magnitude2, error2)
         
     print lightCurveTimes[0]    
     if color == "V":
-        timePre, magsPre, timePost, magsPost = getData()
+        timePre, magsPre, errorsPre, timePost, magsPost, errorsPost = getData()
        
        
         noise = numpy.random.normal(0, 0.06, magsPre.shape)
@@ -244,13 +246,13 @@ def buildLightCurve(file_in, datain, period, minimum, cal1Mag, cal2Mag):
         
         
    
-        lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, timePre, magsPre)
+        lightCurveMags, lightCurveTimes, lightCurveErrors = combArrays(lightCurveTimes, lightCurveMags, lightCurveErrors, timePre, magsPre, errorsPre)
 
-        lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, timePost, magsPost)
+        lightCurveMags, lightCurveTimes, lightCurveErrors = combArrays(lightCurveTimes, lightCurveMags, lightCurveErrors, timePost, magsPost, errorsPost)
 
         lightCurveMags = [x for x in lightCurveMags if x > 14.15]
 
-    if color == "B":
+    '''if color == "B":
         times = [58165.085, 58165.085, 58165.085,58165.086, 58165.084,58165.085, 58165.085, 58165.085,58165.086, 58165.084]
         
         vals = numpy.array([15.9, 15.9, 15.87, 15.91, 15.9,15.9, 15.9, 15.87, 15.91, 15.9])
@@ -260,7 +262,7 @@ def buildLightCurve(file_in, datain, period, minimum, cal1Mag, cal2Mag):
         vals = vals.tolist()
 
         lightCurveMags, lightCurveTimes = combArrays(lightCurveTimes, lightCurveMags, times, vals)
-
+'''
         
     lightCurveTimes, lightCurveMags = (list(t) for t in zip(*sorted(zip(lightCurveTimes, lightCurveMags))))
    # lightCurveTimes, lightCurveMags = sortLightCurve(lightCurveTimes, lightCurveMags)
@@ -444,10 +446,11 @@ def findPeriod(tGuess, alpha, times, magnitudes):
             
 
 
-def combArrays(times1, vals1, times2, vals2):
+def combArrays(times1, vals1, errors1, times2, vals2, errors2):
     '''Combine 2 arrays at the correct times'''
     combVals = []
     combTimes = []
+    combErrors = []
     while (len(vals1) != 0 or len(vals2) != 0):
     #    print len(vals2), len(times2)
         
@@ -455,19 +458,25 @@ def combArrays(times1, vals1, times2, vals2):
         if(len(times2) == 0):
             combVals.append(vals1[0])
             combTimes.append(times1[0])
+            combErrors.append(errors1[0])
             vals1.remove(vals1[0])
             times1.remove(times1[0])
+            errors1.remove(errors1[0])
         elif (len(times1) == 0):
             combVals.append(vals2[0])
             combTimes.append(times2[0])
+            combErrors.append(errors2[0])
             vals2.remove(vals2[0])
             times2.remove(times2[0])
+            errors2.remove(errors2[0])
 
         elif (times1[0] <= times2[0]):
             combVals.append(vals1[0])
             combTimes.append(times1[0])
+            combErrors.append(errors1[0]) 
             vals1.remove(vals1[0])
             times1.remove(times1[0])
+            errors1.remove(errors1[0])
             
       
             
@@ -475,9 +484,12 @@ def combArrays(times1, vals1, times2, vals2):
         else:
             combVals.append(vals2[0])
             combTimes.append(times2[0])
+            combErrors.append(errors2[0])
             vals2.remove(vals2[0])
             times2.remove(times2[0])
-    return combVals, combTimes
+            errors2.remove(errors2[0])
+
+	return combVals, combTimes, combErrors
 
 def getLightCurveAtTime(time, period, lightCurveTimes, lightCurveMags):
     '''Find the position in the lightCurve at the given time'''

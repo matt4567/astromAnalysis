@@ -8,24 +8,38 @@ input_file = open("summary.obs")
 
 def extractData(data, cal1Mag, cal2Mag):
     '''Pull out data from summary.obs files and calculate apparent magnitudes'''
+    
+    cal1Mag_error = 0.01
+    cal2Mag_error = 0.01	
+	
     time = []
     magnitude = []
-	
+    error = []
     trigger = True
     trigger2 = False
     for line in data:
         if (trigger):
             
-            
+            error_var = float(line.split()[2])
+            error_cal1 = float(line.split()[4])
+            error_cal2 = float(line.split()[6])
+			
+			
             time.append(float(line.split()[0]))
           #  magA = float(line.split()[1]) - float(line.split()[3])
           #  magB = float(line.split()[1]) - float(line.split()[5])
         #    magTot = (magA + magB) / 2
             delta1 = cal1Mag - float(line.split()[3])
+            error_delta1 = delta1*numpy.sqrt((cal1Mag_error/cal1Mag)**2 + (error_cal1/float(line.split()[3])**2))
           
             delta2 = cal2Mag - float(line.split()[5])
+            error_delta2 = delta1*numpy.sqrt((cal2Mag_error/cal2Mag)**2 + (error_cal2/float(line.split()[5])**2))			
+			
             avDelta = (delta1 + delta2) / 2
+            error_av = avDelta*numpy.sqrt((error_delta1/delta1)**2 + (error_delta2/delta2)**2)/2
+			
             magTot = float(line.split()[1]) + avDelta
+            error.append(magTot*numpy.sqrt((error_var/float(line.split()[1]))**2 + (error_av/avDelta)**2))
       
             magnitude.append(magTot)
         else:
@@ -33,7 +47,7 @@ def extractData(data, cal1Mag, cal2Mag):
             trigger = True
     data.close()
 
-    return time, magnitude
+    return time, magnitude, error
 
 def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
     
