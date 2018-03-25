@@ -63,7 +63,7 @@ def findPeriods(data, cal1Mag, cal2Mag, period):
     minimas from seperate observations (gaussian fit)'''
     timesOfMins = []
     for d in data:
-        time, magnitude = extractData(d, cal1Mag, cal2Mag)[0], extractData(d, cal1Mag, cal2Mag)[1]
+        time, magnitude = extractData(d, cal1Mag, cal2Mag)[0:2]
         minimum = max(magnitude)
         index = magnitude.index(minimum)
         timesOfMins.append(fitData(time, magnitude, index))
