@@ -59,6 +59,8 @@ def inputData():
     return file_in, datain, period, cal1Mag, cal2Mag
 
 def findPeriods(data, cal1Mag, cal2Mag, period):
+    '''Finds adjusted period of eclipsing binary from time difference between
+    minimas from seperate observations (gaussian fit)'''
     timesOfMins = []
     for d in data:
         time, magnitude = extractData(d, cal1Mag, cal2Mag)
@@ -122,6 +124,7 @@ def gaus(x,a,x0,sigma):
 
 
 def invGauss(inp, a, x0, sigma):
+    '''Inverse gaussian'''
     return x0 + (-2 * sigma**2 * numpy.log(inp / a))**0.5
 
 def fitData(time, magnitude, minimum):
@@ -175,8 +178,10 @@ def fitData(time, magnitude, minimum):
 
 
 
-def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag):
-    '''Create (and save) the lightcurve both B and V'''
+def buildLightCurve(file_in, datain, period, minimum, cal1Mag, cal2Mag):
+    '''Create (and save) the lightcurve both B and V -
+    shifts seperate observation data around to overlap with current lightcurve,
+    corrects time axis to period of eclipsing binary's variation'''
 
     
     time, magnitude = extractData(file_in, cal1Mag, cal2Mag)
@@ -306,7 +311,7 @@ def findRelMagnitudesAndPlot(file_in, datain, period, minimum, cal1Mag, cal2Mag)
 
 
 def fourier4(x, a1, b1, a2, b2, a3, b3, a4, b4, m0):
-    
+    '''Fourier fit to 4th terms'''
     return m0 + a1 * numpy.cos(2 * numpy.pi * x) + b1 * numpy.sin(2 * numpy.pi * x) + \
         a2 * numpy.cos(4 * numpy.pi  * x ) + b2 * numpy.sin(4 * numpy.pi * x )  + \
         a3 * numpy.cos(6 * numpy.pi  * x ) + b3 * numpy.sin(6 * numpy.pi * x )  + \
@@ -397,6 +402,7 @@ def onclick(event):
 def findPeriod(tGuess, alpha, times, magnitudes):
     '''Iterative method for finding minimum of lightcurve'''
     offsetMean = 100
+    print DeprecationWarning("Depreciated method - do not use if possible")
 
     while (offsetMean > .010):
         value = min(times, key=lambda x:abs(x-tGuess))
@@ -417,65 +423,7 @@ def findPeriod(tGuess, alpha, times, magnitudes):
 
     return tGuess
 
-def binarySearch(val, data):
-    first = 0
-    last = len(data) - 1
 
-    
-   
-
-    while first <= last:
-        print "value", val
-        
-        midpoint = (first + last) // 2
-        print "midpoint", midpoint
-        if data[midpoint] == val:
-            
-            return midpoint
-            
-        else:
-            if val < data[midpoint]:
-                
-                last = midpoint - 1
-                midpoint -= 1
-            else:
-                
-                first = midpoint + 1
-                midpoint += 1
-
-    
-    return midpoint
-    
-
-def sortLightCurve(time, mags):
-    sortTime = []
-    sortMags = []
-    
-
-    for i, t in enumerate(time):
-
-
-        if sortTime != []:
-       
-
-        
-
-           
-            index = binarySearch(t, sortTime)
-
-            print "index returned", index
-           
-            sortTime.insert(index, t)
-            sortMags.insert(index, mags[i])
-            print sortTime
-
-        else:
-            sortTime.append(t)
-            sortMags.append(mags[i])
-            
-           
-       
-    return sortTime, sortMags
             
             
 
@@ -545,7 +493,7 @@ if (color == "B"):
     period = 0.295562569469
 
 
-lcTimes, lcMags = findRelMagnitudesAndPlot(file_in, datain, period, 0, cal1Mag, cal2Mag)
+lcTimes, lcMags = buildLightCurve(file_in, datain, period, 0, cal1Mag, cal2Mag)
 
 
 fitFourier(lcTimes, lcMags, period, True)
