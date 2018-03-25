@@ -26,7 +26,7 @@ def inputData():
    #V - band start
     global color
      
-    color = "V"
+    color = "V"    #comment these out to switch bands
    # color = "B"
 
     if (color == "B"):
@@ -92,6 +92,9 @@ def extractData(data, cal1Mag, cal2Mag):
     '''Pull out data from summary.obs files and calculate apparent magnitudes'''
     time = []
     magnitude = []
+    error_var = []
+    error_cal1 = []	
+	error_cal2 = []
     trigger = True
     trigger2 = False
     for line in data:
