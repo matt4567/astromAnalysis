@@ -114,16 +114,16 @@ def extractData(data, cal1Mag, cal2Mag):
           #  magB = float(line.split()[1]) - float(line.split()[5])
         #    magTot = (magA + magB) / 2
             delta1 = cal1Mag - float(line.split()[3])
-            error_delta1 = delta1*numpy.sqrt((cal1Mag_error/cal1Mag)**2 + (error_cal1/float(line.split()[3])**2)
+            error_delta1 = delta1*numpy.sqrt((cal1Mag_error/cal1Mag)**2 + (error_cal1/float(line.split()[3])**2))
           
             delta2 = cal2Mag - float(line.split()[5])
-            error_delta2 = delta1*numpy.sqrt((cal2Mag_error/cal2Mag)**2 + (error_cal2/float(line.split()[5])**2)			
+            error_delta2 = delta1*numpy.sqrt((cal2Mag_error/cal2Mag)**2 + (error_cal2/float(line.split()[5])**2))			
 			
             avDelta = (delta1 + delta2) / 2
             error_av = avDelta*numpy.sqrt((error_delta1/delta1)**2 + (error_delta2/delta2)**2)/2
 			
             magTot = float(line.split()[1]) + avDelta
-            error.append(magTot*numpy.sqrt((error_var/float(line.split()[1]))**2 + (error_av/avDelta)**2)
+            error.append(magTot*numpy.sqrt((error_var/float(line.split()[1]))**2 + (error_av/avDelta)**2))
       
             magnitude.append(magTot)
         else:

@@ -62,7 +62,7 @@ def fitFourier(times, mags, period, plot):
     print "b2",  popt[3],"+/-", numpy.sqrt(pcov[3,3])
     print "b3",  popt[5],"+/-", numpy.sqrt(pcov[5,5])
     print "b4",  popt[7],"+/-", numpy.sqrt(pcov[7,7])
-	print "m0", popt[8], "+/-", numpy.sqrt(pcov[8,8])
+    print "m0", popt[8], "+/-", numpy.sqrt(pcov[8,8])
     print popt
   #  print popt
 
